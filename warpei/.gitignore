@@ -1,0 +1,65 @@
+# OS / Editors
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/
+
+
+# Python (sbc/)
+__pycache__/
+*.py[cod]
+*.egg-info
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+dist/
+
+
+# ESP-IDF (firmware/)
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+# keep: sdkconfig.defaults, dependencies, and other source files
+
+
+# KiCad (hardware/pcb)
+*.kicad_prl
+*.lck
+*-backups
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*-bak
+_autosave-*
+fp-info-cache
+*.net
+*.dsn
+*.ses
+
+
+# CAD / optics temp files
+*.bak
+*.tmp
+~$*
+*.ZDA
+*.SES
+
+
+# Runtime Output (generated on the device) 
+calibration.json
+calibration.json.tmp
+*.log
+sbc/captures/
+testing/results/scratch/
+
+
+# Secrets
+.env
+*.pem
+*.key

@@ -1,0 +1,48 @@
+# Line endings: normalize text, keep LF for linux-ran code
+* text=auto
+*.py text eol=lf
+*.sh text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.vert text eol=lf
+*.frag text eol=lf
+*.service text eol=lf
+CMakeLists.txt text eol=lf
+
+
+# KiCad files are text: keep in normal git
+*.kicad_pro text
+*.kicad_sch text
+*.kicad_pcb text
+*.kicad_sym text
+*.kicad_mod text
+
+
+# Git LFS: large files (binary) are stored in LFS
+*.pdf filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+
+
+# Mechanical CAD
+*.step filter=lfs diff=lfs merge=lfs -text
+*.stp filter=lfs diff=lfs merge=lfs -text
+*.stl filter=lfs diff=lfs merge=lfs -text
+*.f3d filter=lfs diff=lfs merge=lfs -text
+*.sldprt filter=lfs diff=lfs merge=lfs -text
+*.sldasm filter=lfs diff=lfs merge=lfs -text
+
+
+# Optics
+*.zmx filter=lfs diff=lfs merge=lfs -text
+*.zos filter=lfs diff=lfs merge=lfs -text
+*.zar filter=lfs diff=lfs merge=lfs -text
+
+
+# Documents
+*.docx filter=lfs diff=lfs merge=lfs -text
+*.xlsx filter=lfs diff=lfs merge=lfs -text
+*.pptx filter=lfs diff=lfs merge=lfs -text
