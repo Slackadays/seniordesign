@@ -12,7 +12,8 @@ This is the repository for the software and hardware used for our OSE4951/EEL491
 | Arthur Wnuk | EE | Power, Control PCB |
 | Christian Artigas | CpE | Software, Firmware |
 
-Advisors: Dr. Chung Yong Chan, Dr. Paul Leisher
+Advisors: Dr. Chung Yong Chan, Dr. Paul Leisher   
+Reviewers: Dr. Stephen Eikenberry, Dr. Di Wu, Dr. Hao Zheng
 
 
 ## Repository Layout
@@ -29,10 +30,10 @@ Advisors: Dr. Chung Yong Chan, Dr. Paul Leisher
 
 ### To Get Started
 
-'''bash
-git lfs install
-git clone https://github.com/Slackadays/seniordesign
-'''
+'''bash  
+git lfs install  
+git clone https://github.com/Slackadays/seniordesign  
+'''   
 
 Git LFS is required. Without it, since CAD files and images are larger, they would download as pointer files. 
 
@@ -40,23 +41,23 @@ Git LFS is required. Without it, since CAD files and images are larger, they wou
 ## SBC Application (sbc/) [unfinished]
 
 '''bash
-cd sbc
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-pytest
-'''
+cd sbc  
+python3 -m venv .venv  
+source .venv/bin/activate  
+pip install -e .   
+pytest  
+'''   
 
 Requires python 3.11.
 
 
 ## Firmware (firmware/) [unfinished]
 
-'''bash
-cd firmware
-idf.py set-target esp32
-idf.py build 
-idf.py -p <port> flash monitor
+'''bash  
+cd firmware  
+idf.py set-target esp32  
+idf.py build   
+idf.py -p <port> flash monitor  
 
 Requires ESP-IDF.
 
