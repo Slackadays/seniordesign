@@ -1,6 +1,6 @@
 ## Warpei
 
-This is the repository for the software and hardware used for our OSE4951/EEl4914: Senior Design 1 project. Our project is a low-cost LCD projector that corrects its own image on a curved surface. It projects a grid, measures the distortion with a camera, and pre-warps each frame so the image appears flat. 
+This is the repository for the software and hardware used for our OSE4951/EEL4914: Senior Design 1 project. Our project is a low-cost LCD projector that corrects its own image on a curved surface. It projects a grid, measures the distortion with a camera, and pre-warps each frame so the image appears flat. 
 
 
 ## Team
