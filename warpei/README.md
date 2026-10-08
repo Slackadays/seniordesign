@@ -6,7 +6,7 @@ This is the repository for the software and hardware used for our OSE4951/EEl491
 ## Team
 
 | Member | Major | Area|
-
+| --- | --- | --- |
 | Jackson Huff | PSE | Optics |
 | Brittany Maragh | PSE | Optics, Calibration Algorithm |
 | Arthur Wnuk | EE | Power, control PCB |
@@ -18,6 +18,7 @@ Advisors: Dr. Chung Yong Chan, Dr. Paul Leisher
 ## Repository Layout
 
 | Folder | Contents |
+| --- | --- |
 | sbc/ | ROCK 5B application (python): calibration, video warp |
 | firmware/ | ESP32 Firmware (C, ESP-IDF): buttons, fans, thermal cutoff|
 | protocol/ | UART message definitions shared by sbc/ and firmware/ |
