@@ -7,7 +7,7 @@ This is the repository for the software and hardware used for our OSE4951/EEl491
 
 | Member | Major | Area|
 | --- | --- | --- |
-| Jackson Huff | PSE | Optics |
+| Jackson Huff | PSE | Optics, Team Lead |
 | Brittany Maragh | PSE | Optics, Calibration Algorithm |
 | Arthur Wnuk | EE | Power, control PCB |
 | Christian Artigas | CpE | Software, Firmware |
