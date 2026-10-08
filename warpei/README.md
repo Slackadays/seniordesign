@@ -9,7 +9,7 @@ This is the repository for the software and hardware used for our OSE4951/EEL491
 | --- | --- | --- |
 | Jackson Huff | PSE | Optics, Team Lead |
 | Brittany Maragh | PSE | Optics, Calibration Algorithm |
-| Arthur Wnuk | EE | Power, control PCB |
+| Arthur Wnuk | EE | Power, Control PCB |
 | Christian Artigas | CpE | Software, Firmware |
 
 Advisors: Dr. Chung Yong Chan, Dr. Paul Leisher
@@ -37,7 +37,7 @@ git clone https://github.com/Slackadays/seniordesign
 Git LFS is required. Without it, since CAD files and images are larger, they would download as pointer files. 
 
 
-## SBC Application (sbc/)
+## SBC Application (sbc/) [unfinished]
 
 '''bash
 cd sbc
@@ -50,7 +50,7 @@ pytest
 Requires python 3.11.
 
 
-## Firmware (firmware/)
+## Firmware (firmware/) [unfinished]
 
 '''bash
 cd firmware
