@@ -3,8 +3,13 @@
 The point order matches OpenCV's findCirclesGrid for CALIB_CB_ASYMMETRIC_GRID,
 so grid_points()[i] corresponds to the i-th centre returned by detect.py.
 
+An optional offset, in grid units, shifts the whole grid. The verify step
+uses an offset of (0.5, 0.5) so the correction is scored on circles that were
+not used to fit it.
+
 Run as a script to write the pattern image:
     python -m warpei.calibration.pattern --out pattern.png
+    python -m warpei.calibration.pattern --out pattern_shifted.png --offset 0.5 0.5
 """
 
 from __future__ import annotations
@@ -29,6 +34,9 @@ FILL_FRACTION = 0.80
 # 1.41 units apart, so 0.30 leaves a clear gap between circles.
 RADIUS_FRACTION = 0.30
 
+# Grid shift, in units, used for the held-out verification pattern.
+VERIFY_OFFSET = (0.5, 0.5)
+
 
 def grid_unit(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
               pattern_size: tuple[int, int] = PATTERN_SIZE,
@@ -46,17 +54,19 @@ def grid_unit(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
 
 def grid_points(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
                 pattern_size: tuple[int, int] = PATTERN_SIZE,
-                fill: float = FILL_FRACTION) -> np.ndarray:
+                fill: float = FILL_FRACTION,
+                offset: tuple[float, float] = (0.0, 0.0)) -> np.ndarray:
     """Return the circle centres in panel pixels, shape (N, 2), float32.
 
     Order: row by row, left to right, same as findCirclesGrid.
+    offset shifts every centre by (dx, dy) grid units.
     """
     cols, rows = pattern_size
     unit = grid_unit(width, height, pattern_size, fill)
     span_x = (2 * (cols - 1) + 1) * unit
     span_y = (rows - 1) * unit
-    x0 = (width - span_x) / 2.0
-    y0 = (height - span_y) / 2.0
+    x0 = (width - span_x) / 2.0 + offset[0] * unit
+    y0 = (height - span_y) / 2.0 + offset[1] * unit
 
     points = []
     for row in range(rows):
@@ -77,7 +87,8 @@ def circle_radius(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
 def render_pattern(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
                    pattern_size: tuple[int, int] = PATTERN_SIZE,
                    fill: float = FILL_FRACTION,
-                   dark_on_light: bool = True) -> np.ndarray:
+                   dark_on_light: bool = True,
+                   offset: tuple[float, float] = (0.0, 0.0)) -> np.ndarray:
     """Draw the pattern as an 8-bit grayscale image of shape (height, width).
 
     dark_on_light=True draws black circles on a white field, which is what
@@ -86,7 +97,9 @@ def render_pattern(width: int = PANEL_WIDTH, height: int = PANEL_HEIGHT,
     background, foreground = (255, 0) if dark_on_light else (0, 255)
     image = np.full((height, width), background, dtype=np.uint8)
     radius = circle_radius(width, height, pattern_size, fill)
-    for x, y in grid_points(width, height, pattern_size, fill):
+    for x, y in grid_points(width, height, pattern_size, fill, offset):
+        if not (radius <= x < width - radius and radius <= y < height - radius):
+            raise ValueError(f"offset {offset} pushes a circle off the panel")
         cv2.circle(image, (int(round(x)), int(round(y))), radius,
                    foreground, thickness=-1, lineType=cv2.LINE_AA)
     return image
@@ -97,16 +110,19 @@ def main() -> None:
     parser.add_argument("--out", default="pattern.png")
     parser.add_argument("--width", type=int, default=PANEL_WIDTH)
     parser.add_argument("--height", type=int, default=PANEL_HEIGHT)
+    parser.add_argument("--offset", type=float, nargs=2, default=(0.0, 0.0),
+                        metavar=("DX", "DY"), help="shift the grid by DX DY grid units")
     parser.add_argument("--light-on-dark", action="store_true",
                         help="white circles on black instead of black on white")
     args = parser.parse_args()
 
+    offset = (args.offset[0], args.offset[1])
     image = render_pattern(args.width, args.height,
-                           dark_on_light=not args.light_on_dark)
+                           dark_on_light=not args.light_on_dark, offset=offset)
     cv2.imwrite(args.out, image)
     print(f"Wrote {args.out}: {args.width}x{args.height}, "
           f"{len(grid_points(args.width, args.height))} circles, "
-          f"radius {circle_radius(args.width, args.height)} px")
+          f"radius {circle_radius(args.width, args.height)} px, offset {offset}")
 
 
 if __name__ == "__main__":
