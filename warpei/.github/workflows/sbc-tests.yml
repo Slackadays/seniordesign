@@ -1,0 +1,18 @@
+name: SBC tests
+on:
+  push:
+    paths: ["warpei/sbc/**"]
+  pull_request:
+    paths: ["warpei/sbc/**"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+        working-directory: warpei/sbc
+      - run: pytest
+        working-directory: warpei/sbc
