@@ -2,7 +2,7 @@
 
 The camera is the measuring instrument. Any bend its lens adds to the circle
 positions would otherwise be mistaken for surface curvature and "corrected"
-into the projected image. This module loads the one-time lens calibration
+into the projected image. This file loads the one-time lens calibration
 written by tools/calibrate_camera.py and straightens the 44 detected points.
 
 Only points are corrected, never whole images: 44 points per calibration

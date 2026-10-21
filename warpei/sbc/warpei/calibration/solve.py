@@ -1,4 +1,4 @@
-"""Fit the warp model from matched panel and camera points (task 1.4).
+"""Fit the warp model from matched panel and camera points.
 
 Inputs are the 44 panel-pixel centres from pattern.grid_points() and the
 44 camera-pixel centres from detect.py, already undistorted. The model has

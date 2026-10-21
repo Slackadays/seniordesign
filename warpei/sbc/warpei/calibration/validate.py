@@ -1,7 +1,7 @@
-"""Score a calibration (task 1.5).
+"""Score a calibration.
 
-The specification in Table 2.5.1 is the RMS distance between where the
-circles appear and where they should appear, over the n detected circles:
+The specification in Table 2.5.1 is RMS distance between where the
+circles appear and where they should appear, over n detected circles:
 
     RMS = sqrt( (1/n) * sum_i |c_i - T(p_i)|^2 )
 
