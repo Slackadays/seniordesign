@@ -1,6 +1,6 @@
 """Find the calibration circle centres in a camera image.
 
-The centres come back in the same order as pattern.grid_points(), so
+Centres come back in the same order as pattern.grid_points(), so
 centres[i] is the camera-side match of projected point i.
 
 Run as a script to check a saved capture:
