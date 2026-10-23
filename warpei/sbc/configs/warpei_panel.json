@@ -1,0 +1,18 @@
+{
+  "panel_width": 1440,
+  "panel_height": 2560,
+  "source_rotation": 90,
+  "source_flip_horizontal": false,
+  "source_flip_vertical": false,
+  "camera": "0",
+  "camera_width": 1920,
+  "camera_height": 1080,
+  "display_offset_x": 0,
+  "display_offset_y": 0,
+  "display_fullscreen": true,
+  "detect_retries": 3,
+  "settle_seconds": 0.5,
+  "calibration_path": "/home/rock/.warpei/calibration.json",
+  "camera_file": "/home/rock/.warpei/camera.json",
+  "test_image": ""
+}

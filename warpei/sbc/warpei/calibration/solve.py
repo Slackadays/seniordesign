@@ -4,13 +4,6 @@ Inputs are the 44 panel-pixel centres from pattern.grid_points() and the
 44 camera-pixel centres from detect.py, already undistorted. The model has
 two parts that together form the forward map f: panel pixel -> camera pixel.
 
-    f(p) = H(n(p)) + poly(n(p))
-
-n   scales panel pixels to the range -1..1 (keeps the fit well conditioned)
-H   homography: removes the perspective component (flat-surface case)
-poly second-order bivariate polynomial on the residual, 6 coefficients per
-    axis, 12 in total: what the curved surface adds
-
 The target map T places the source image as an undistorted rectangle in the
 camera's view: T(p) = s * p + t. The corrected image shows, at panel pixel p,
 the source pixel T^-1(f(p)). No numerical inversion of the polynomial is

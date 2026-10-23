@@ -4,15 +4,13 @@ States:  IDLE -> PROJECT_PATTERN -> CAPTURE -> SOLVE -> VERIFY -> RUN
                       ^                 |                   |
                       +---- retry ------+        FAILED <---+ (falls back to last saved)
 
-The Calibrator class is independent of any window or camera: it is given a
-`display(image)` function and a `capture()` function, so the tests drive it
-with a simulated camera and the real program drives it with OpenCV windows
-and a VideoCapture. Run as a program:
+The Calibrator class is independent of any window or camera, it is given a
+`display(image)` function and a `capture()` function
 
     python -m warpei.app                     # defaults, camera 0
     python -m warpei.app --camera 1 --config config.json
 
-Keys in the output window: C calibrate, T toggle correction, R show raw
+Keys in output window: C calibrate, T toggle correction, R show raw
 pattern, S save a screenshot, Q quit.
 """
 
