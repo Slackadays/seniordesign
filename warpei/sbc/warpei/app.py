@@ -1,18 +1,3 @@
-"""Calibration state machine and demo application (tasks 2.3 and 2.4).
-
-States:  IDLE -> PROJECT_PATTERN -> CAPTURE -> SOLVE -> VERIFY -> RUN
-                      ^                 |                   |
-                      +---- retry ------+        FAILED <---+ (falls back to last saved)
-
-The Calibrator class is independent of any window or camera, it is given a
-`display(image)` function and a `capture()` function
-
-    python -m warpei.app                     # defaults, camera 0
-    python -m warpei.app --camera 1 --config config.json
-
-Keys in output window: C calibrate, T toggle correction, R show raw
-pattern, S save a screenshot, Q quit.
-"""
 
 from __future__ import annotations
 
@@ -85,6 +70,7 @@ class Calibrator:
         self.camera = camera or identity_calibration(config.camera_width, config.camera_height)
         self.sleep = sleep
         self.state = State.IDLE
+        self.flip = bool(config.source_flip_horizontal)   # recorded in the calibration file
         self.model: WarpModel | None = None
         self.last_run: CalibrationRun | None = None
         self._listeners: list[Callable[[State], None]] = []
@@ -127,7 +113,8 @@ class Calibrator:
                 return self.camera.undistort_points(result.centers)
             log.warning("%s: grid not found (attempt %d, %d blobs)", name, attempt, result.blob_count)
             self.sleep(self.config.settle_seconds)
-        raise CalibrationError(f"{name}: grid not found after {self.config.detect_retries + 1} attempts")
+        raise CalibrationError(f"DETECT_FAIL: {name}: grid not found after "
+                               f"{self.config.detect_retries + 1} attempts")
 
     # ---- the sequence -----------------------------------------------------
 
@@ -167,7 +154,12 @@ class Calibrator:
             run.passed = run.reduction_percent >= cfg.required_reduction_percent
             run.seconds = time.perf_counter() - start
             if run.seconds > cfg.calibration_timeout_seconds:
-                raise CalibrationError(f"took {run.seconds:.0f} s, over the {cfg.calibration_timeout_seconds:.0f} s limit")
+                raise CalibrationError(f"TIMEOUT: took {run.seconds:.0f} s, over the "
+                                       f"{cfg.calibration_timeout_seconds:.0f} s limit")
+            if not run.passed:
+                # Report 7.3: only a validated result is stored; the previous one is kept.
+                raise CalibrationError(f"ACCURACY: reduction {run.reduction_percent:.1f}% is below "
+                                       f"the {cfg.required_reduction_percent:.0f}% target")
 
             # 4. Keep it and save it.
             self.model = model
@@ -182,6 +174,7 @@ class Calibrator:
                 log.info("keeping the previous calibration")
                 self._set(State.RUN)
         self.last_run = run
+        self._log(run)
         log.info(run.summary())
         return run
 
@@ -190,10 +183,22 @@ class Calibrator:
     def _save(self, run: CalibrationRun) -> None:
         calib = storage.CalibrationFile(warp=run.model, camera=self.camera,
                                         rms_before=run.rms_before, rms_after=run.rms_after,
+                                        flip=self.flip,
                                         notes={"reduction_percent": run.reduction_percent,
                                                "passed": run.passed, "seconds": run.seconds})
         storage.save(calib, self.config.calibration_path)
         log.info("saved calibration to %s", self.config.calibration_path)
+
+    def _log(self, run: CalibrationRun) -> None:
+        """Append-only record of every attempt, pass or fail (never raises)."""
+        try:
+            storage.log_attempt(self.config.calibration_path,
+                                result="pass" if not run.error else "fail", error=run.error,
+                                rms_before=run.rms_before, rms_after=run.rms_after,
+                                reduction_percent=run.reduction_percent, seconds=run.seconds,
+                                attempts=run.attempts, flip=self.flip)
+        except OSError as exc:
+            log.warning("could not write calibration log: %s", exc)
 
     def load_saved(self) -> bool:
         """Load the last calibration from disk. Returns True if one was usable."""
@@ -204,6 +209,7 @@ class Calibrator:
             log.warning("saved calibration is for a %sx%s panel, ignoring", *calib.warp.panel_size)
             return False
         self.model = calib.warp
+        self.flip = calib.flip
         if calib.camera is not None:
             self.camera = calib.camera
         self._set(State.RUN)

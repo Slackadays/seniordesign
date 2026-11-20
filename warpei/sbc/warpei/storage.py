@@ -9,6 +9,7 @@ because the rename is the only step that touches the real file name.
 
 from __future__ import annotations
 
+import csv
 import datetime
 import json
 import os
@@ -28,6 +29,7 @@ class CalibrationFile:
     camera: CameraCalibration | None = None
     rms_before: float | None = None
     rms_after: float | None = None
+    flip: bool = False                 # image-flip state when this calibration was made
     saved_at: str = ""
     notes: dict = field(default_factory=dict)
 
@@ -39,6 +41,7 @@ class CalibrationFile:
             "camera": self.camera.to_dict() if self.camera else None,
             "rms_before": self.rms_before,
             "rms_after": self.rms_after,
+            "flip": bool(self.flip),
             "notes": dict(self.notes),
         }
 
@@ -52,6 +55,7 @@ class CalibrationFile:
             camera=CameraCalibration.from_dict(d["camera"]) if d.get("camera") else None,
             rms_before=d.get("rms_before"),
             rms_after=d.get("rms_after"),
+            flip=bool(d.get("flip", False)),
             saved_at=d.get("saved_at", ""),
             notes=dict(d.get("notes", {})),
         )
@@ -92,3 +96,55 @@ def load_or_none(path: str | Path) -> CalibrationFile | None:
         return load(path)
     except (FileNotFoundError, ValueError, KeyError, json.JSONDecodeError):
         return None
+
+
+# --------------------------------------------------------------------------
+# Calibration log: append-only, one line per attempt (Report Section 7.5)
+# --------------------------------------------------------------------------
+
+LOG_FIELDS = ["timestamp", "result", "error", "rms_before", "rms_after",
+              "reduction_percent", "seconds", "attempts", "flip"]
+
+
+def log_path_for(calibration_path: str | Path) -> Path:
+    """The log sits next to the calibration file: calibration.json -> calibration_log.csv"""
+    p = Path(calibration_path)
+    return p.with_name(p.stem + "_log.csv")
+
+
+def log_attempt(calibration_path: str | Path, *, result: str, error: str = "",
+                rms_before: float | None = None, rms_after: float | None = None,
+                reduction_percent: float | None = None, seconds: float = 0.0,
+                attempts: dict | None = None, flip: bool = False) -> Path:
+    """Append one line describing a calibration attempt, pass or fail.
+
+    The file is never rewritten, so a failed attempt cannot erase the record
+    of earlier ones. The reliability figure (3 of 5) can be computed from it.
+    """
+    path = log_path_for(calibration_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    new = not path.exists()
+    fmt = lambda v: "" if v is None else f"{v:.3f}"
+    with path.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=LOG_FIELDS)
+        if new:
+            writer.writeheader()
+        writer.writerow({
+            "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+            "result": result, "error": error,
+            "rms_before": fmt(rms_before), "rms_after": fmt(rms_after),
+            "reduction_percent": fmt(reduction_percent), "seconds": f"{seconds:.2f}",
+            "attempts": " ".join(f"{k.replace(' ', '_')}={v}" for k, v in (attempts or {}).items()),
+            "flip": int(bool(flip)),
+        })
+        handle.flush()
+        os.fsync(handle.fileno())
+    return path
+
+
+def read_log(calibration_path: str | Path) -> list[dict]:
+    path = log_path_for(calibration_path)
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
