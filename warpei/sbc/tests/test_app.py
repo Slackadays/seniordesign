@@ -131,3 +131,62 @@ def test_timeout_is_reported(tmp_path):
     cal = Calibrator(cfg, rig.display, rig.capture, rig.camera, sleep=lambda s: None)
     run = cal.calibrate()
     assert "over the" in run.error
+
+
+# ---- Report 7.3 / 7.5 additions ---------------------------------------------
+
+def test_accuracy_failure_keeps_previous_and_saves_nothing(tmp_path):
+    """A result below the 50% target is rejected, the old calibration stays, no file is written."""
+    cfg = make_config(tmp_path, required_reduction_percent=50.0)
+    good = FakeRig()
+    cal = Calibrator(cfg, good.display, good.capture, good.camera, sleep=lambda s: None)
+    assert cal.calibrate().passed
+    saved_before = storage.load(cfg.calibration_path)
+
+    cal.config.required_reduction_percent = 100.1       # impossible target -> ACCURACY
+    run = cal.calibrate()
+    assert run.error.startswith("ACCURACY")
+    assert not run.passed
+    assert cal.state == State.RUN                        # previous calibration kept
+    assert storage.load(cfg.calibration_path).saved_at == saved_before.saved_at
+
+
+def test_accuracy_failure_with_no_previous_calibration(tmp_path):
+    cfg = make_config(tmp_path, required_reduction_percent=100.1)
+    rig = FakeRig()
+    cal = Calibrator(cfg, rig.display, rig.capture, rig.camera, sleep=lambda s: None)
+    run = cal.calibrate()
+    assert run.error.startswith("ACCURACY")
+    assert cal.state == State.FAILED and cal.model is None
+    assert not (tmp_path / "calibration.json").exists()
+
+
+def test_detect_failure_is_named(tmp_path):
+    rig = FakeRig(blank_after=0)
+    cal = Calibrator(make_config(tmp_path, detect_retries=1), rig.display, rig.capture,
+                     rig.camera, sleep=lambda s: None)
+    assert cal.calibrate().error.startswith("DETECT_FAIL")
+
+
+def test_every_attempt_is_logged(tmp_path):
+    cfg = make_config(tmp_path, detect_retries=0)
+    good = FakeRig()
+    cal = Calibrator(cfg, good.display, good.capture, good.camera, sleep=lambda s: None)
+    cal.calibrate()                                      # pass
+    bad = FakeRig(blank_after=0)
+    cal2 = Calibrator(cfg, bad.display, bad.capture, bad.camera, sleep=lambda s: None)
+    cal2.calibrate()                                     # fail
+    rows = storage.read_log(cfg.calibration_path)
+    assert [r["result"] for r in rows] == ["pass", "fail"]
+    assert rows[0]["rms_after"] != "" and rows[1]["error"].startswith("DETECT_FAIL")
+    assert set(rows[0]) == set(storage.LOG_FIELDS)
+
+
+def test_flip_state_saved_and_restored(tmp_path):
+    cfg = make_config(tmp_path, source_flip_horizontal=True)
+    rig = FakeRig()
+    cal = Calibrator(cfg, rig.display, rig.capture, rig.camera, sleep=lambda s: None)
+    assert cal.calibrate().passed
+    assert storage.load(cfg.calibration_path).flip is True
+    cal2 = Calibrator(make_config(tmp_path), rig.display, rig.capture, rig.camera)
+    assert cal2.load_saved() and cal2.flip is True

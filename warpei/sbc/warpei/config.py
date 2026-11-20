@@ -43,8 +43,8 @@ class Config:
     pattern_dark_on_light: bool = True
 
     # Calibration sequence.
-    detect_retries: int = 3                  # extra capture attempts per pattern
-    settle_seconds: float = 0.4              # wait after showing a pattern before capturing
+    detect_retries: int = 2                  # extra capture attempts per pattern (3 attempts total)
+    settle_seconds: float = 0.5              # wait after showing a pattern before capturing
     calibration_timeout_seconds: float = 180.0
     required_reduction_percent: float = 50.0
 

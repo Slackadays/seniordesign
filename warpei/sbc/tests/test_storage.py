@@ -82,3 +82,24 @@ def test_file_is_human_readable(tmp_path):
     data = json.loads(path.read_text())
     assert len(data["warp"]["coeff_u"]) == 6
     assert len(data["camera"]["dist_coeffs"]) == 5
+
+
+def test_flip_round_trip(tmp_path):
+    calib = make_calibration()
+    calib.flip = True
+    storage.save(calib, tmp_path / "c.json")
+    assert storage.load(tmp_path / "c.json").flip is True
+    old = json.loads((tmp_path / "c.json").read_text())
+    del old["flip"]                                       # files written before the field existed
+    (tmp_path / "old.json").write_text(json.dumps(old))
+    assert storage.load(tmp_path / "old.json").flip is False
+
+
+def test_log_is_append_only(tmp_path):
+    path = tmp_path / "calibration.json"
+    storage.log_attempt(path, result="fail", error="DETECT_FAIL: x", seconds=3.0, attempts={"fit grid": 3})
+    storage.log_attempt(path, result="pass", rms_before=20.0, rms_after=4.0, reduction_percent=80.0, seconds=5.0)
+    rows = storage.read_log(path)
+    assert len(rows) == 2 and rows[0]["result"] == "fail" and rows[1]["reduction_percent"] == "80.000"
+    assert rows[0]["attempts"] == "fit_grid=3"
+    assert storage.log_path_for(path).name == "calibration_log.csv"
