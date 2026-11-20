@@ -187,3 +187,11 @@ the Python module (`sbc/warpei/link/protocol.py`) are to be generated from
 `protocol/messages.json` by `protocol/generate.py` (Phase 5), so the two
 sides compile against one definition. Until then this document is the
 definition and both implementations must be checked against it by hand.
+
+## Test plan (task 5.6)
+
+1. Loopback: ROCK 5B TX to RX, send and receive 10,000 random frames, expect 0 accepted corruptions.
+2. Inject one wrong CRC byte per 100 frames, expect every one dropped and the next frame still received.
+3. Unplug the ESP32, expect "controller offline" within 5 s on the ROCK 5B.
+4. Long-press Calibrate on the ESP32, expect CAL_STATE(4) within 100 ms and READY or CAL_ERROR before the 200 s firmware timeout.
+5. Heat the sensor target past 90 °C, expect LED enable low within 2 s and a FAULT(1) frame after it.
