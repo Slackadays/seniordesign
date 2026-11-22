@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "description": "Warpei UART link between the ESP32 and the ROCK 5B. See uart_messages.md. Both the C header and the Python module are generated from this file by generate.py; edit here, then regenerate.",
+  "frame": {
+    "start_byte": 165,
+    "max_payload": 32,
+    "max_frame": 37,
+    "crc": {"polynomial": 7, "init": 0, "name": "CRC-8 (MLX90614 PEC)"}
+  },
+  "link": {
+    "baud": 115200,
+    "heartbeat_period_ms": 1000,
+    "heartbeat_reply_deadline_ms": 100,
+    "link_down_ms": 5000,
+    "ack_deadline_ms": 100,
+    "ack_retries": 2,
+    "firmware_calibration_timeout_ms": 200000
+  },
+  "types": {"u8": "B", "i8": "b", "u16": "H", "i16": "h", "u32": "I", "i32": "i"},
+  "messages": [
+    {"id": 1,   "name": "HEARTBEAT",       "direction": "E2R", "fields": [["fw_state", "u8"]]},
+    {"id": 2,   "name": "HEARTBEAT_REPLY", "direction": "R2E", "fields": [["app_state", "u8"]]},
+    {"id": 3,   "name": "BUTTON",          "direction": "E2R", "fields": [["command", "u8"]]},
+    {"id": 4,   "name": "TEMPERATURE",     "direction": "E2R", "fields": [["object_c_x10", "i16"], ["ambient_c_x10", "i16"], ["fan_pct", "u8"], ["fan_rpm", "u16"]]},
+    {"id": 5,   "name": "FAULT",           "direction": "E2R", "fields": [["fault_code", "u8"], ["object_c_x10", "i16"]]},
+    {"id": 6,   "name": "BRIGHTNESS",      "direction": "E2R", "fields": [["level", "u8"]]},
+    {"id": 16,  "name": "CAL_START",       "direction": "E2R", "fields": []},
+    {"id": 17,  "name": "CAL_ABORT",       "direction": "E2R", "fields": []},
+    {"id": 18,  "name": "FLIP",            "direction": "E2R", "fields": [["flip", "u8"]]},
+    {"id": 32,  "name": "CAL_STATE",       "direction": "R2E", "fields": [["app_state", "u8"]]},
+    {"id": 33,  "name": "READY",           "direction": "R2E", "fields": [["rms_before_x10", "u16"], ["rms_after_x10", "u16"], ["reduction_pct", "u8"]]},
+    {"id": 34,  "name": "CAL_ERROR",       "direction": "R2E", "fields": [["error_code", "u8"]]},
+    {"id": 127, "name": "ACK",             "direction": "both", "fields": [["acked_id", "u8"]]}
+  ],
+  "enums": {
+    "button_command": {"POWER_SHORT": 1, "POWER_LONG": 2, "CALIBRATE_LONG": 3, "FLIP_SHORT": 4},
+    "fw_state": {"BOOTING": 0, "OFF": 1, "ON": 2, "CALIBRATING": 3, "OVER_TEMPERATURE": 4, "FAULT": 5},
+    "app_state": {"BOOTING": 0, "NO_SOURCE": 1, "PASSTHROUGH": 2, "WARPED": 3, "CALIBRATING": 4, "ERROR": 5},
+    "fault_code": {"NONE": 0, "OVER_TEMPERATURE": 1, "SENSOR": 2},
+    "cal_error": {"DETECT_FAIL": 1, "ACCURACY": 2, "TIMEOUT": 3, "ABORTED": 4, "CAMERA": 5}
+  }
+}
