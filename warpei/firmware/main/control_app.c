@@ -57,12 +57,15 @@ static void nvs_store(uint8_t level, bool flip)
 
 static void outputs_init(void)
 {
-    gpio_config_t out = {
-        .pin_bit_mask = (1ULL << PIN_LED_ENABLE) | (1ULL << PIN_IND_GREEN) | (1ULL << PIN_IND_RED),
-        .mode = GPIO_MODE_OUTPUT,
-    };
-    gpio_config(&out);
-    gpio_set_level(PIN_LED_ENABLE, 0);
+    uint64_t mask = 0;
+    if (PIN_LED_ENABLE >= 0) mask |= 1ULL << PIN_LED_ENABLE;
+    if (PIN_IND_GREEN >= 0)  mask |= 1ULL << PIN_IND_GREEN;
+    if (PIN_IND_RED >= 0)    mask |= 1ULL << PIN_IND_RED;
+    if (mask) {
+        gpio_config_t out = { .pin_bit_mask = mask, .mode = GPIO_MODE_OUTPUT };
+        gpio_config(&out);
+    }
+    if (PIN_LED_ENABLE >= 0) gpio_set_level(PIN_LED_ENABLE, 0);
     ledc_timer_config_t timer = {
         .speed_mode = LEDC_LOW_SPEED_MODE, .timer_num = LEDC_TIMER_0,
         .duty_resolution = LEDC_TIMER_10_BIT, .freq_hz = LED_PWM_FREQ_HZ, .clk_cfg = LEDC_AUTO_CLK,
@@ -80,7 +83,8 @@ static uint32_t s_blink_phase;
 static void apply_outputs(const ctl_outputs_t *o)
 {
     /* LED enable is the safety output: drive it before anything else. */
-    gpio_set_level(PIN_LED_ENABLE, o->led_enable ? 1 : 0);
+    if (PIN_LED_ENABLE >= 0) gpio_set_level(PIN_LED_ENABLE, o->led_enable ? 1 : 0);
+    /* With no enable pin (Warpei PCB), duty 0 is the off state. */
     uint32_t duty = o->led_enable ? (1023u * o->led_duty_pct) / 100u : 0;
     ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
@@ -96,8 +100,8 @@ static void apply_outputs(const ctl_outputs_t *o)
     case IND_RED_SOLID:   r = true; break;
     default: break;
     }
-    gpio_set_level(PIN_IND_GREEN, g);
-    gpio_set_level(PIN_IND_RED, r);
+    if (PIN_IND_GREEN >= 0) gpio_set_level(PIN_IND_GREEN, g);
+    if (PIN_IND_RED >= 0)   gpio_set_level(PIN_IND_RED, r);
 
     int32_t arg = o->send_arg;
     switch (o->send) {

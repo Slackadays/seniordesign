@@ -1,3 +1,5 @@
+"""GENERATED FROM protocol/messages.json BY protocol/generate.py. DO NOT EDIT."""
+
 from __future__ import annotations
 
 import struct

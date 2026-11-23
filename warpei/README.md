@@ -24,7 +24,6 @@ Reviewers: Dr. Stephen Eikenberry, Dr. Di Wu, Dr. Hao Zheng
 | firmware/ | ESP32 Firmware (C, ESP-IDF): buttons, fans, thermal cutoff|
 | protocol/ | UART message definitions shared by sbc/ and firmware/ |
 | hardware/ | PCB, power, optics, and mechanical design files |
-| testing/ | Test procedures and results |
 | docs/ | Diagrams, report figure, meeting notes |
 
 
@@ -44,8 +43,8 @@ Git LFS is required. Without it, since CAD files and images are larger, they wou
 cd sbc  
 python3 -m venv .venv  
 source .venv/bin/activate  
-pip install -e .   
-pytest  
+pip install -e ".[board]"   
+python -m warpei.main --config configs/warpei_panel.json  
 '''   
 
 Requires python 3.11.
