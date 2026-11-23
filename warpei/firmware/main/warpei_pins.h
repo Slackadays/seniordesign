@@ -50,4 +50,7 @@
  * checking Q1 temperature. */
 #define LED_PWM_FREQ_HZ    1000
 
+/* Bit mask for gpio_config(); 0 for pins marked -1 (no negative-shift error). */
+#define PIN_MASK(p)        ((p) >= 0 ? (1ULL << ((p) & 63)) : 0ULL)
+
 #endif

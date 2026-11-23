@@ -1,4 +1,4 @@
-# Warpei control board firmware. ESP-IDF 5.5.x, target esp32 (ESP32-WROOM-32E).
+# Warpei control board firmware. ESP-IDF 5.5 or 6.x, target esp32 (ESP32-WROOM-32E).
 #     idf.py set-target esp32
 #     idf.py build flash monitor
 cmake_minimum_required(VERSION 3.16)

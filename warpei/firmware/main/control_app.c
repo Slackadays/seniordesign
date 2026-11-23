@@ -58,9 +58,9 @@ static void nvs_store(uint8_t level, bool flip)
 static void outputs_init(void)
 {
     uint64_t mask = 0;
-    if (PIN_LED_ENABLE >= 0) mask |= 1ULL << PIN_LED_ENABLE;
-    if (PIN_IND_GREEN >= 0)  mask |= 1ULL << PIN_IND_GREEN;
-    if (PIN_IND_RED >= 0)    mask |= 1ULL << PIN_IND_RED;
+    mask |= PIN_MASK(PIN_LED_ENABLE);
+    mask |= PIN_MASK(PIN_IND_GREEN);
+    mask |= PIN_MASK(PIN_IND_RED);
     if (mask) {
         gpio_config_t out = { .pin_bit_mask = mask, .mode = GPIO_MODE_OUTPUT };
         gpio_config(&out);
