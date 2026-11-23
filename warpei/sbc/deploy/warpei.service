@@ -1,0 +1,22 @@
+[Unit]
+Description=Warpei projector application
+After=multi-user.target
+# No graphical.target dependency: the application opens the panel itself through KMS/DRM.
+
+[Service]
+Type=simple
+User=@USER@
+Group=video
+SupplementaryGroups=render dialout input
+WorkingDirectory=@SBC_DIR@
+Environment=SDL_VIDEODRIVER=kmsdrm
+Environment=PYTHONUNBUFFERED=1
+ExecStart=@VENV@/bin/python -m warpei.main --config /home/@USER@/.warpei/config.json --uart /dev/ttyS2 --video-source 2
+Restart=on-failure
+RestartSec=3
+# The calibration file is written atomically; a kill mid-write cannot corrupt it.
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
