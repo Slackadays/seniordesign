@@ -1,0 +1,4 @@
+# Bench build: idf.py -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.bench" build
+# Lets the control PCB run with no MLX90614 attached. Never flash this onto
+# the assembled projector.
+CONFIG_WARPEI_BENCH_NO_SENSOR=y

@@ -1,3 +1,4 @@
+#include "sdkconfig.h"
 #include "thermal_supervisor.h"
 #include "thermal_logic.h"
 #include "control_app.h"
@@ -21,6 +22,7 @@ static volatile int16_t s_last_obj = 0, s_last_amb = 0;
 static volatile uint8_t s_fan_request = 100;
 static volatile uint16_t s_fan_rpm = 0;
 static bool s_fan_present = false;
+static bool s_bench_fake = false;      /* CONFIG_WARPEI_BENCH_NO_SENSOR and no sensor found */
 
 static int fan_xfer(void *ctx, uint8_t addr, const uint8_t *w, size_t wlen, uint8_t *r, size_t rlen, uint32_t to)
 {
@@ -48,9 +50,12 @@ static void sensor_task(void *arg)
     uint32_t n = 0;
     for (;;) {
         int16_t obj = 0, amb = 0;
-        mlx90614_err_t e = mlx90614_read_object_c_x10(&s_sensor, &obj);
+        mlx90614_err_t e = s_bench_fake ? MLX_OK : mlx90614_read_object_c_x10(&s_sensor, &obj);
         bool ok = e == MLX_OK;
-        if (ok) {
+        if (s_bench_fake) {
+            obj = 250; amb = 250;                  /* 25.0 C, constant */
+            s_last_obj = obj; s_last_amb = amb;
+        } else if (ok) {
             s_last_obj = obj;
             if (mlx90614_read_ambient_c_x10(&s_sensor, &amb) == MLX_OK) s_last_amb = amb;
         } else {
@@ -68,7 +73,7 @@ static void sensor_task(void *arg)
             uint16_t rpm; if (emc2101_read_rpm(&s_fan, &rpm) == 0) s_fan_rpm = rpm;
         }
         if (++n % 10 == 0) {                       /* TEMPERATURE every 1 s */
-            int32_t f[4] = { s_last_obj, s_last_amb, duty, s_fan_rpm };
+            int32_t f[4] = { s_last_obj, s_last_amb, duty, s_bench_fake ? 0xFFFF : s_fan_rpm };
             link_send(WP_MSG_TEMPERATURE, f, 4);
         }
         esp_task_wdt_reset();
@@ -93,6 +98,13 @@ bool thermal_start(void)
     ESP_ERROR_CHECK(mlx90614_esp_attach(&s_sensor, bus, MLX90614_DEFAULT_ADDR, NULL));
     mlx90614_err_t pe = mlx90614_probe(&s_sensor);
     ESP_LOGI(TAG, "MLX90614 probe: %s", mlx90614_err_str(pe));
+#if CONFIG_WARPEI_BENCH_NO_SENSOR
+    if (pe != MLX_OK) {
+        s_bench_fake = true;
+        pe = MLX_OK;
+        ESP_LOGW(TAG, "BENCH MODE: no MLX90614, faking 25.0 C. Do not use on the projector.");
+    }
+#endif
 
     i2c_device_config_t fcfg = { .dev_addr_length = I2C_ADDR_BIT_LEN_7, .device_address = EMC2101_ADDR, .scl_speed_hz = 100000 };
     if (i2c_master_bus_add_device(bus, &fcfg, &s_fan_dev) == ESP_OK) {

@@ -1,0 +1,13 @@
+menu "Warpei control board"
+
+config WARPEI_BENCH_NO_SENSOR
+    bool "Bench mode: run without the MLX90614 (NOT for the assembled projector)"
+    default n
+    help
+        When the MLX90614 probe fails at boot, substitute a constant 25.0 C
+        reading instead of latching the sensor fault, so the state machine,
+        buttons and LED output can be exercised on a bare control PCB.
+        Every TEMPERATURE message carries fan_rpm = 0xFFFF as a marker.
+        Leave this off for any build that drives the real LED heatsink.
+
+endmenu
