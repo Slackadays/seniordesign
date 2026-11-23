@@ -78,6 +78,15 @@ static void outputs_init(void)
     ledc_channel_config(&ch);
 }
 
+static uint8_t button_command_code(uint8_t button, btn_press_t press)
+{
+    if (button == BTN_POWER     && press == BTN_PRESS_SHORT) return WP_BUTTON_COMMAND_POWER_SHORT;
+    if (button == BTN_POWER     && press == BTN_PRESS_LONG)  return WP_BUTTON_COMMAND_POWER_LONG;
+    if (button == BTN_CALIBRATE && press == BTN_PRESS_LONG)  return WP_BUTTON_COMMAND_CALIBRATE_LONG;
+    if (button == BTN_FLIP      && press == BTN_PRESS_SHORT) return WP_BUTTON_COMMAND_FLIP_SHORT;
+    return 0;                                   /* combinations with no meaning are not reported */
+}
+
 static uint32_t s_blink_phase;
 
 static void apply_outputs(const ctl_outputs_t *o)
@@ -133,7 +142,14 @@ static void control_task(void *arg)
         bool flip_before = s_ctl.flip;
         switch (ev.kind) {
         case EV_BOOT:    ctl_boot_done(&s_ctl, ev.a != 0, &out); break;
-        case EV_BUTTON:  ctl_on_button(&s_ctl, ev.a, (btn_press_t)ev.b, &out); break;
+        case EV_BUTTON: {
+            /* Report every classified press, whatever the state does with it,
+             * so the ROCK 5B (or the bench monitor) can log it. */
+            uint8_t cmd = button_command_code(ev.a, (btn_press_t)ev.b);
+            if (cmd) { int32_t c = cmd; link_send(WP_MSG_BUTTON, &c, 1); }
+            ctl_on_button(&s_ctl, ev.a, (btn_press_t)ev.b, &out);
+            break;
+        }
         case EV_THERMAL: ctl_on_thermal(&s_ctl, (th_event_t)ev.a, &out); break;
         case EV_LINK: {
             int32_t fields[8];
